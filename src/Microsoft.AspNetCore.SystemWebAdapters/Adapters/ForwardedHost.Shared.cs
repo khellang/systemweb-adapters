@@ -12,23 +12,23 @@ namespace Microsoft.AspNetCore.SystemWebAdapters;
 
 internal readonly struct ForwardedHost
 {
-    private readonly int? _port;
-
-    public ForwardedHost(string host, string? proto)
+    public ForwardedHost(string host, string? proto) : this(host, IsSecureProto(proto))
     {
-        var hostString = HostString.FromUriComponent(host);
-
-        IsSecure = string.Equals("https", proto, StringComparison.OrdinalIgnoreCase);
-        ServerName = hostString.Host;
-        _port = hostString.Port;
     }
 
-    private int DefaultPort => IsSecure ? 443 : 80;
-
-    public bool IsSecure { get; }
+    public ForwardedHost(string host, bool isSecure)
+    {
+        var hostString = HostString.FromUriComponent(host);
+        ServerName = hostString.Host;
+        Port = hostString.Port ?? GetDefaultPort(isSecure);
+    }
 
     public string ServerName { get; }
 
-    public int Port => _port is int port ? port : DefaultPort;
+    public int Port { get; }
+
+    public static bool IsSecureProto(string? proto) => string.Equals("https", proto, StringComparison.OrdinalIgnoreCase);
+
+    private static int GetDefaultPort(bool isSecure) => isSecure ? 443 : 80;
 }
 #endif

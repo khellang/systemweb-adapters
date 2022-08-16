@@ -18,9 +18,9 @@ internal class ProxyHeaderModule : IHttpModule
     private const string ServerHttps = "HTTPS";
     private const string ServerName = "SERVER_NAME";
     private const string ServerPort = "SERVER_PORT";
-    private const string ForwardedProto = "x-forwarded-proto";
-    private const string ForwardedHost = "x-forwarded-host";
-    
+    private const string XForwardedProto = "x-forwarded-proto";
+    private const string XForwardedHost = "x-forwarded-host";
+
     // ASP.NET expects lowercase values for HTTPS, not uppercase as the docs may indicate
     private const string On = "on";
     private const string Off = "off";
@@ -64,20 +64,22 @@ internal class ProxyHeaderModule : IHttpModule
     {
         UseForwardedFor(requestHeaders, serverVariables);
 
-        var proto = requestHeaders[ForwardedProto];
+        var proto = requestHeaders[XForwardedProto];
+        var isSecure = ForwardedHost.IsSecureProto(proto);
 
-        if (requestHeaders[ForwardedHost] is { } host)
+        serverVariables.Set(ServerHttps, isSecure ? On : Off);
+
+        if (requestHeaders[XForwardedHost] is { } host)
         {
             if (requestHeaders[Host] is { } originalHost)
             {
                 requestHeaders[_options.Value.OriginalHostHeaderName] = originalHost;
             }
 
-            var value = new ForwardedHost(host, proto);
+            var value = new ForwardedHost(host, isSecure);
 
             serverVariables.Set(ServerName, value.ServerName);
             serverVariables.Set(ServerPort, value.Port.ToString(CultureInfo.InvariantCulture));
-            serverVariables.Set(ServerHttps, value.IsSecure ? On : Off);
 
             requestHeaders[Host] = host;
         }

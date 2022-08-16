@@ -78,13 +78,13 @@ internal class RedirectUrlProcessor : IRemoteAppAuthenticationResultProcessor
             {
                 redirectBuilder.Host = forwardedHost.ServerName;
                 redirectBuilder.Port = forwardedHost.Port;
-
-                // Also replace the scheme if a forwarded scheme was provided
-                if (!string.IsNullOrEmpty(forwardedProto))
-                {
-                    redirectBuilder.Scheme = forwardedProto;
-                }
             }
+        }
+
+        // Also replace the scheme if a forwarded scheme was provided
+        if (!string.IsNullOrEmpty(forwardedProto))
+        {
+            redirectBuilder.Scheme = forwardedProto;
         }
 
         return redirectBuilder.Uri;
